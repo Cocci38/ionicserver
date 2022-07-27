@@ -48,7 +48,7 @@ if (!empty($input) || isset($_GET)) {
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
                 if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     $stmt = $conn->prepare("INSERT INTO foundlost (status, description, date, location, firstname, lastname, email) VALUES(:status, :description, :date, :location, :firstname, :lastname, :email)");
-                    $stmt->bindParam("status", $status, PDO::PARAM_BOOL);
+                    $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
                     $stmt->bindParam("date", $date, PDO::PARAM_STR);
                     $stmt->bindParam("location", $location, PDO::PARAM_STR);
@@ -65,13 +65,25 @@ if (!empty($input) || isset($_GET)) {
         // Mettre à jour les enregistements
         case 'update':
             $id = htmlspecialchars(strip_tags($_GET['id']));
-            try {
-                $update = $conn->prepare("UPDATE foundlost SET status=:status WHERE id_object = $id");
-                $update->bindParam('status', $status, PDO::PARAM_INT);
-                $update->execute();
-            } catch (PDOException $exception) {
-                echo "Erreur de connexion : " . $exception->getMessage();
+            if ($status == 0) {
+                try {
+                    $update = $conn->prepare("UPDATE foundlost SET status = 1 WHERE id_object = $id");
+                    $update->bindParam(':status', $status, PDO::PARAM_INT);
+                    $update->execute();
+                } catch (PDOException $exception) {
+                    echo "Erreur de connexion : " . $exception->getMessage();
+                }
             }
+            if ($status == 1) {
+                try {
+                    $update = $conn->prepare("UPDATE foundlost SET status = 0 WHERE id_object = $id");
+                    $update->bindParam(':status', $status, PDO::PARAM_INT); 
+                    $update->execute();
+                } catch (PDOException $exception) {
+                    echo "Erreur de connexion : " . $exception->getMessage();
+                }
+            }
+
             break;
 
         //Supprimer un enregistrement existant
