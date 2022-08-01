@@ -22,7 +22,17 @@ $key = strip_tags($_GET['key']);
 
 // Récupérer les paramètres envoyés par le client vers l’API
 $input = file_get_contents('php://input');
-
+function validate($valid){
+    $description = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
+    $location = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
+    $firstname = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
+    $lastname = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
+    if ($description && $location && $firstname && $lastname){
+        return true;
+    }else{
+        return false;
+    }
+}
 if (!empty($input) || isset($_GET)) {
     $data = json_decode($input, true);
     
@@ -37,16 +47,17 @@ if (!empty($input) || isset($_GET)) {
     switch ($key) {
         // Ajoute un nouvel enregistrement
         case 'create':
-                $status = htmlspecialchars($status);
-                $description = htmlspecialchars($description);
-                $date = htmlspecialchars($date);
-                $location = htmlspecialchars($location);
-                $firstname = htmlspecialchars($firstname);
-                $lastname = htmlspecialchars($lastname);
-                $email = htmlspecialchars($email);
+                $status = htmlspecialchars(trim($status));
+                $description = htmlspecialchars(trim($description));
+                $date = htmlspecialchars(trim($date));
+                $location = htmlspecialchars(trim($location));
+                $firstname = htmlspecialchars(trim($firstname));
+                $lastname = htmlspecialchars(trim($lastname));
+                $email = htmlspecialchars(trim($email));
             try {
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                // preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $description);
+                if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $description) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $location) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $firstname) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $lastname)) {
                     $stmt = $conn->prepare("INSERT INTO foundlost (status, description, date, location, firstname, lastname, email) VALUES(:status, :description, :date, :location, :firstname, :lastname, :email)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
@@ -64,7 +75,7 @@ if (!empty($input) || isset($_GET)) {
 
         // Mettre à jour les enregistements
         case 'update':
-            $id = htmlspecialchars(strip_tags($_GET['id']));
+            $id = htmlspecialchars(strip_tags(trim($_GET['id'])));
             if ($status == 0) {
                 try {
                     $update = $conn->prepare("UPDATE foundlost SET status = 1 WHERE id_object = $id");
@@ -89,7 +100,7 @@ if (!empty($input) || isset($_GET)) {
         //Supprimer un enregistrement existant
         case 'delete':
             
-            $id = htmlspecialchars(strip_tags($_GET['id']));
+            $id = htmlspecialchars(strip_tags(trim($_GET['id'])));
             try {
                 $delete = $conn->prepare("DELETE FROM foundlost WHERE id_object = $id");
                 $delete->execute();
