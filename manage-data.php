@@ -117,17 +117,29 @@ if (!empty($input) || isset($_GET)) {
             @$user_email = htmlspecialchars(trim(strip_tags($data['user_email'])));
             @$password = htmlspecialchars(trim(strip_tags($data['password'])));
             @$passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
             try {
                 $user_email = filter_var($user_email, FILTER_SANITIZE_EMAIL);
+                $login = $conn->prepare("SELECT user_email FROM users");
+                $login->execute();
+                $result = $login->fetch(PDO::FETCH_ASSOC);
+
                 if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $username) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $password)) {
-                    $user = $conn->prepare("INSERT INTO users (username, user_email, password) VALUES(:username, :user_email, :password)");
-                    $user->bindParam("username", $username, PDO::PARAM_STR);
-                    $user->bindParam("user_email", $user_email, PDO::PARAM_STR);
-                    $user->bindParam("password", $passwordHash, PDO::PARAM_STR);
-                    $user->execute();
-                    // error_log("mot de passe : ", $password,1);
-                    // error_log("email", $user_email,1);
-                    // error_log("nom", $username,1);
+                    if ($user_email !== $result['user_email']) {
+                        $user = $conn->prepare("INSERT INTO users (username, user_email, password) VALUES(:username, :user_email, :password)");
+                        $user->bindParam("username", $username, PDO::PARAM_STR);
+                        $user->bindParam("user_email", $user_email, PDO::PARAM_STR);
+                        $user->bindParam("password", $passwordHash, PDO::PARAM_STR);
+                        $user->execute();
+                        // error_log("mot de passe : ", $password,1);
+                        // error_log("email", $user_email,1);
+                        // error_log("nom", $username,1);
+                        $nameUser = true;
+                        echo $name = json_encode($nameUser);
+                    } else {
+                        $email = false;
+                        echo $email_user = json_encode($email);
+                    }
                 }
             } catch (PDOException $exception) {
                 echo "Erreur de connexion : " . $exception->getMessage();
