@@ -1,8 +1,6 @@
 <?php
 // Pour gérer l’ajout, la mise à jour et la suppression des enregistrements de la table foundlost.
 
-use LDAP\Result;
-
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');
 
@@ -124,7 +122,7 @@ if (!empty($input) || isset($_GET)) {
                 $login->execute();
                 $result = $login->fetch(PDO::FETCH_ASSOC);
 
-                if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $username) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $password)) {
+                if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
                     if ($user_email !== $result['user_email']) {
                         $user = $conn->prepare("INSERT INTO users (username, user_email, password) VALUES(:username, :user_email, :password)");
                         $user->bindParam("username", $username, PDO::PARAM_STR);
@@ -151,25 +149,27 @@ if (!empty($input) || isset($_GET)) {
             @$password = htmlspecialchars(trim(strip_tags($data['password'])));
             try {
                 if ($username !== "" && $user_email !== "" && $password !== "") {
-                    $login = $conn->prepare("SELECT username, user_email, password FROM users WHERE user_email=:user_email");
-                    $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
-                    $login->execute();
-                    $result = $login->fetch(PDO::FETCH_ASSOC);
-                    // error_log(print_r('coucou 0'), 1);
-                    // var_dump($result);
-                    $row = count($result);
-                    if ($row > 0) {
-                        // error_log(print_r('coucou 1'), 1);
-                        if (filter_var($user_email, FILTER_VALIDATE_EMAIL)) {
-                            // error_log(print_r('coucou 2'), 1);
-                            $passwordHash = $result['password'];
-                            if (password_verify($password, $passwordHash)) {
-                                // error_log(print_r('coucou 3'), 1);
-                                $variable = true;
-                            } else {
-                                $variable = false;
+                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
+                        $login = $conn->prepare("SELECT username, user_email, password FROM users WHERE user_email=:user_email");
+                        $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
+                        $login->execute();
+                        $result = $login->fetch(PDO::FETCH_ASSOC);
+                        // error_log(print_r('coucou 0'), 1);
+                        // var_dump($result);
+                        $row = count($result);
+                        if ($row > 0) {
+                            // error_log(print_r('coucou 1'), 1);
+                            if (filter_var($user_email, FILTER_VALIDATE_EMAIL)) {
+                                // error_log(print_r('coucou 2'), 1);
+                                $passwordHash = $result['password'];
+                                if (password_verify($password, $passwordHash)) {
+                                    // error_log(print_r('coucou 3'), 1);
+                                    $variable = true;
+                                } else {
+                                    $variable = false;
+                                }
+                                echo $var = json_encode($variable);
                             }
-                            echo $var = json_encode($variable);
                         }
                     }
                 }
