@@ -145,12 +145,13 @@ if (!empty($input) || isset($_GET)) {
             break;
         case 'login':
 
+            @$username = htmlspecialchars(trim(strip_tags($data['username'])));
             @$user_email = htmlspecialchars(trim(strip_tags($data['user_email'])));
             @$password = htmlspecialchars(trim(strip_tags($data['password'])));
             try {
                 if ($username !== "" && $user_email !== "" && $password !== "") {
                     if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
-                        $login = $conn->prepare("SELECT username, user_email, password FROM users WHERE user_email=:user_email");
+                        $login = $conn->prepare("SELECT id_user, username, user_email, password FROM users WHERE user_email=:user_email");
                         $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
                         $login->execute();
                         $result = $login->fetch(PDO::FETCH_ASSOC);
@@ -164,11 +165,13 @@ if (!empty($input) || isset($_GET)) {
                                 $passwordHash = $result['password'];
                                 if (password_verify($password, $passwordHash)) {
                                     // error_log(print_r('coucou 3'), 1);
+                                    echo json_encode($result);
                                     $variable = true;
+                                    
                                 } else {
                                     $variable = false;
                                 }
-                                echo $var = json_encode($variable);
+                                // echo $var = json_encode($variable);
                             }
                         }
                     }
