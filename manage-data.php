@@ -155,26 +155,23 @@ if (!empty($input) || isset($_GET)) {
                         $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
                         $login->execute();
                         $result = $login->fetch(PDO::FETCH_ASSOC);
-                        // error_log(print_r('coucou 0'), 1);
-                        // var_dump($result);
-                        $row = count($result);
-                        if ($row > 0) {
-                            // error_log(print_r('coucou 1'), 1);
-                            if (filter_var($user_email, FILTER_VALIDATE_EMAIL)) {
-                                // error_log(print_r('coucou 2'), 1);
-                                $passwordHash = $result['password'];
-                                if (password_verify($password, $passwordHash)) {
-                                    // error_log(print_r('coucou 3'), 1);
-                                    echo json_encode($result);
-                                    $variable = true;
-                                    
-                                } else {
-                                    $variable = false;
-                                }
-                                // echo $var = json_encode($variable);
+                        // error_log(print_r('coucou 0 '), 1);
+                        if (empty($result['user_email'])) {
+                            $user = false;
+                        } else if (count($result) > 0) {
+                            // error_log(print_r('coucou 1 '), 1);
+                            if (password_verify($password,  $result['password']) && $result['user_email'] == $user_email && $result['username'] == $username) {
+                                $user = true;
+                            } else {
+                                $user = false;
                             }
                         }
                     }
+                }
+                if ($user == true) {
+                    echo json_encode($result);
+                } else {
+                    echo json_encode($user);
                 }
             } catch (PDOException $exception) {
                 echo "Erreur de connexion : " . $exception->getMessage();
