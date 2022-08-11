@@ -55,11 +55,12 @@ if (!empty($input) || isset($_GET)) {
             @$firstname = htmlspecialchars(trim(strip_tags($data['firstname'])));
             @$lastname = htmlspecialchars(trim(strip_tags($data['lastname'])));
             @$email = htmlspecialchars(trim(strip_tags($data['email'])));
+            @$users_id = htmlspecialchars(trim(strip_tags($data['users_id'])));
             try {
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
                 // preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $description);
-                if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $description) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $location) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $firstname) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $lastname)) {
-                    $stmt = $conn->prepare("INSERT INTO foundlost (status, description, date, location, firstname, lastname, email) VALUES(:status, :description, :date, :location, :firstname, :lastname, :email)");
+                if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,}$#", $description) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $location) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $firstname) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $lastname)) {
+                    $stmt = $conn->prepare("INSERT INTO foundlost (status, description, date, location, firstname, lastname, email, users_id) VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :users_id)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
                     $stmt->bindParam("date", $date, PDO::PARAM_STR);
@@ -67,6 +68,7 @@ if (!empty($input) || isset($_GET)) {
                     $stmt->bindParam("firstname", $firstname, PDO::PARAM_STR);
                     $stmt->bindParam("lastname", $lastname, PDO::PARAM_STR);
                     $stmt->bindParam("email", $email, PDO::PARAM_STR);
+                    $stmt->bindParam("users_id", $users_id, PDO::PARAM_INT);
                     $stmt->execute();
                 }
             } catch (PDOException $exception) {
