@@ -70,6 +70,12 @@ if (!empty($input) || isset($_GET)) {
                     $stmt->bindParam("email", $email, PDO::PARAM_STR);
                     $stmt->bindParam("users_id", $users_id, PDO::PARAM_INT);
                     $stmt->execute();
+
+                    $create = true;
+                    echo json_encode($create);
+                } else {
+                    $create = false;
+                    echo json_encode($create);
                 }
             } catch (PDOException $exception) {
                 echo "Erreur de connexion : " . $exception->getMessage();
