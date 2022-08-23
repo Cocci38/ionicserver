@@ -160,12 +160,12 @@ if (!empty($input) || isset($_GET)) {
             break;
         case 'login':
 
-            @$username = htmlspecialchars(trim(strip_tags($data['username'])));
+            // @$username = htmlspecialchars(trim(strip_tags($data['username'])));
             @$user_email = htmlspecialchars(trim(strip_tags($data['user_email'])));
             @$password = htmlspecialchars(trim(strip_tags($data['password'])));
             try {
-                if ($username !== "" && $user_email !== "" && $password !== "") {
-                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
+                if ($user_email !== "" && $password !== "") {
+                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
                         $login = $conn->prepare("SELECT id_user, username, user_email, password FROM users WHERE user_email=:user_email");
                         $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
                         $login->execute();
@@ -175,7 +175,7 @@ if (!empty($input) || isset($_GET)) {
                             $user = false;
                         } else if (count($result) > 0) {
                             // error_log(print_r('coucou 1 '), 1);
-                            if (password_verify($password,  $result['password']) && $result['user_email'] == $user_email && $result['username'] == $username) {
+                            if (password_verify($password,  $result['password']) && $result['user_email'] == $user_email) {
                                 $user = true;
                             } else {
                                 $user = false;
