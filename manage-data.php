@@ -1,6 +1,6 @@
 <?php
 // Pour gérer l’ajout, la mise à jour et la suppression des enregistrements de la table foundlost.
-
+// On peut garder * pour le développement mais il faudra le changer lors du passage en production
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');
 
