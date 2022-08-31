@@ -4,6 +4,7 @@
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');
 
+// Connexion à la base de données
 $host = "localhost";
 $db_name = "ionicfoundlost";
 $username = "root";
@@ -17,12 +18,13 @@ try {
     echo "Erreur de connexion : " . $exception->getMessage();
 }
 
-// Récupérer le paramètre d’action de l’URL du client depuis $_GET[‘key’] 
-// et nettoyer la valeur
+// Récupérer le paramètre d’action de l’URL du client depuis $_GET[‘key’] et nettoyer la valeur
 $key = strip_tags($_GET['key']);
 
 // Récupérer les paramètres envoyés par le client vers l’API
+// C'est la façon recommandée pour lire le contenu d'un fichier dans une chaîne de caractères.
 $input = file_get_contents('php://input');
+
 // function validate($valid){
 //     $description = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
 //     $location = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
@@ -34,6 +36,7 @@ $input = file_get_contents('php://input');
 //         return false;
 //     }
 // }
+
 if (!empty($input) || isset($_GET)) {
     $data = json_decode($input, true);
 
@@ -48,14 +51,14 @@ if (!empty($input) || isset($_GET)) {
     switch ($key) {
             // Ajoute un nouvel enregistrement
         case 'create':
-            @$status = htmlspecialchars(trim(strip_tags($data['status'])));
-            @$description = htmlspecialchars(trim(strip_tags($data['description'])));
-            @$date = htmlspecialchars(trim(strip_tags($data['date'])));
-            @$location = htmlspecialchars(trim(strip_tags($data['location'])));
-            @$firstname = htmlspecialchars(trim(strip_tags($data['firstname'])));
-            @$lastname = htmlspecialchars(trim(strip_tags($data['lastname'])));
-            @$email = htmlspecialchars(trim(strip_tags($data['email'])));
-            @$users_id = htmlspecialchars(trim(strip_tags($data['users_id'])));
+            $status = htmlspecialchars(trim(strip_tags(stripslashes($data['status']))));
+            $description = htmlspecialchars(trim(strip_tags(stripslashes($data['description']))));
+            $date = htmlspecialchars(trim(strip_tags(stripslashes($data['date']))));
+            $location = htmlspecialchars(trim(strip_tags(stripslashes($data['location']))));
+            $firstname = htmlspecialchars(trim(strip_tags(stripslashes($data['firstname']))));
+            $lastname = htmlspecialchars(trim(strip_tags(stripslashes($data['lastname']))));
+            $email = htmlspecialchars(trim(strip_tags(stripslashes($data['email']))));
+            $users_id = htmlspecialchars(trim(strip_tags(stripslashes($data['users_id']))));
             try {
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
                 // preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $description);
@@ -84,7 +87,7 @@ if (!empty($input) || isset($_GET)) {
 
             // Mettre à jour les enregistements
         case 'update':
-            $id = htmlspecialchars(strip_tags(trim($_GET['id'])));
+            $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
             if ($status == 0) {
                 try {
                     $update = $conn->prepare("UPDATE foundlost SET status = 1 WHERE id_object = $id");
@@ -108,7 +111,7 @@ if (!empty($input) || isset($_GET)) {
 
             //Supprimer un enregistrement existant
         case 'delete':
-            $id = htmlspecialchars(strip_tags(trim($_GET['id'])));
+            $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
             try {
                 $delete = $conn->prepare("DELETE FROM foundlost WHERE id_object = $id");
                 $delete->execute();
@@ -119,10 +122,10 @@ if (!empty($input) || isset($_GET)) {
             break;
         case 'users':
 
-            @$username = htmlspecialchars(trim(strip_tags($data['username'])));
-            @$user_email = htmlspecialchars(trim(strip_tags($data['user_email'])));
-            @$password = htmlspecialchars(trim(strip_tags($data['password'])));
-            @$passwordHash = password_hash($password, PASSWORD_DEFAULT);
+            $username = htmlspecialchars(trim(strip_tags(stripslashes($data['username']))));
+            $user_email = htmlspecialchars(trim(strip_tags(stripslashes($data['user_email']))));
+            $password = htmlspecialchars(trim(strip_tags(stripslashes($data['password']))));
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
             try {
                 $user_email = filter_var($user_email, FILTER_SANITIZE_EMAIL);
@@ -130,8 +133,8 @@ if (!empty($input) || isset($_GET)) {
                 $login->execute();
                 $result = $login->fetch(PDO::FETCH_ASSOC);
 
-                if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
-                    if ($user_email !== $result['user_email']) {
+                if ($user_email !== $result['user_email']) {
+                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
                         $user = $conn->prepare("INSERT INTO users (username, user_email, password) VALUES(:username, :user_email, :password)");
                         $user->bindParam("username", $username, PDO::PARAM_STR);
                         $user->bindParam("user_email", $user_email, PDO::PARAM_STR);
@@ -141,18 +144,19 @@ if (!empty($input) || isset($_GET)) {
                         // error_log("email", $user_email,1);
                         // error_log("nom", $username,1);
                         $nameUser = true;
-                        if ($nameUser == true) {
-                            $login = $conn->prepare("SELECT id_user, username, user_email FROM users WHERE user_email=:user_email");
-                            $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
-                            $login->execute();
-                            $result = $login->fetch(PDO::FETCH_ASSOC);
-                            echo json_encode($result);
-                        }
+                        // if ($nameUser == true) {
+                        $login = $conn->prepare("SELECT id_user, username, user_email FROM users WHERE user_email=:user_email");
+                        $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
+                        $login->execute();
+                        $result = $login->fetch(PDO::FETCH_ASSOC);
+                        echo json_encode($result);
+                        // }
                         // echo $name = json_encode($nameUser);
-                    } else {
-                        $email = false;
-                        echo $email_user = json_encode($email);
+
                     }
+                } else {
+                    $email = false;
+                    echo $email_user = json_encode($email);
                 }
             } catch (PDOException $exception) {
                 echo "Erreur de connexion : " . $exception->getMessage();
@@ -161,8 +165,8 @@ if (!empty($input) || isset($_GET)) {
         case 'login':
 
             // @$username = htmlspecialchars(trim(strip_tags($data['username'])));
-            @$user_email = htmlspecialchars(trim(strip_tags($data['user_email'])));
-            @$password = htmlspecialchars(trim(strip_tags($data['password'])));
+            $user_email = htmlspecialchars(trim(strip_tags(stripslashes($data['user_email']))));
+            $password = htmlspecialchars(trim(strip_tags(stripslashes($data['password']))));
             try {
                 if ($user_email !== "" && $password !== "") {
                     if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
