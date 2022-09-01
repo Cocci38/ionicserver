@@ -144,15 +144,15 @@ if (!empty($input) || isset($_GET)) {
                         // error_log("email", $user_email,1);
                         // error_log("nom", $username,1);
                         $nameUser = true;
-                        // if ($nameUser == true) {
+
                         $login = $conn->prepare("SELECT id_user, username, user_email FROM users WHERE user_email=:user_email");
                         $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
                         $login->execute();
                         $result = $login->fetch(PDO::FETCH_ASSOC);
-                        echo json_encode($result);
-                        // }
-                        // echo $name = json_encode($nameUser);
-
+                        echo json_encode($result, $nameUser);
+                    } else {
+                        $nameUser = false;
+                        echo $name = json_encode($nameUser);
                     }
                 } else {
                     $email = false;
