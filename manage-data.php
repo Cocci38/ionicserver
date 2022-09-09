@@ -88,23 +88,16 @@ if (!empty($input) || isset($_GET)) {
             // Mettre à jour les enregistements
         case 'update':
             $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
-            if ($status == 0) {
-                try {
+            $status = "";
+            try {
+                if ($status == 0) {
                     $update = $conn->prepare("UPDATE foundlost SET status = 1 WHERE id_object = $id");
                     $update->bindParam(':status', $status, PDO::PARAM_INT);
                     $update->execute();
-                } catch (PDOException $exception) {
-                    echo "Erreur de connexion : " . $exception->getMessage();
+
                 }
-            }
-            if ($status == 1) {
-                try {
-                    $update = $conn->prepare("UPDATE foundlost SET status = 0 WHERE id_object = $id");
-                    $update->bindParam(':status', $status, PDO::PARAM_INT);
-                    $update->execute();
-                } catch (PDOException $exception) {
-                    echo "Erreur de connexion : " . $exception->getMessage();
-                }
+            } catch (PDOException $exception) {
+                echo "Erreur de connexion : " . $exception->getMessage();
             }
 
             break;
