@@ -19,34 +19,16 @@ try {
 }
 
 // Récupérer le paramètre d’action de l’URL du client depuis $_GET[‘key’] et nettoyer la valeur
-$key = strip_tags($_GET['key']);
+$key = htmlspecialchars(strip_tags(trim(stripslashes($_GET['key']))));
 
 // Récupérer les paramètres envoyés par le client vers l’API
 // C'est la façon recommandée pour lire le contenu d'un fichier dans une chaîne de caractères.
 $input = file_get_contents('php://input');
 
-// function validate($valid){
-//     $description = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
-//     $location = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
-//     $firstname = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
-//     $lastname = preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $valid);
-//     if ($description && $location && $firstname && $lastname){
-//         return true;
-//     }else{
-//         return false;
-//     }
-// }
-
+// Si les paramètres envoyés par le client ne sont pas vide OU $_GET est déclarée et différente de null ($_GET pour update et delete)
 if (!empty($input) || isset($_GET)) {
     $data = json_decode($input, true);
 
-    // @$status = strip_tags($data['status']);
-    // @$description = strip_tags($data['description']); 
-    // @$date = strip_tags($data['date']);
-    // @$location = strip_tags($data['location']);
-    // @$firstname = strip_tags($data['firstname']);
-    // @$lastname = strip_tags($data['lastname']);
-    // @$email = strip_tags($data['email']);
     // En fonction du mode d'action requis
     switch ($key) {
             // Ajoute un nouvel enregistrement
@@ -113,8 +95,9 @@ if (!empty($input) || isset($_GET)) {
                 echo "Erreur de connexion : " . $exception->getMessage();
             }
             break;
-        case 'users':
+        case 'sign-up':
 
+            // FILTER_SANITIZE_EMAIL : Supprime tous les caractères sauf les lettres, chiffres, et !#$%&'*+-=?^_`{|}~@.[].
             $username = htmlspecialchars(trim(strip_tags(stripslashes($data['username']))));
             $user_email = htmlspecialchars(trim(strip_tags(stripslashes($data['user_email']))));
             $password = htmlspecialchars(trim(strip_tags(stripslashes($data['password']))));
@@ -157,7 +140,6 @@ if (!empty($input) || isset($_GET)) {
             break;
         case 'login':
 
-            // @$username = htmlspecialchars(trim(strip_tags($data['username'])));
             $user_email = htmlspecialchars(trim(strip_tags(stripslashes($data['user_email']))));
             $password = htmlspecialchars(trim(strip_tags(stripslashes($data['password']))));
             try {

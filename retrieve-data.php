@@ -24,8 +24,8 @@ if (isset($_GET['id'])) {
     // error_log($_GET['id']);
     $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
     try {
-        $select = $conn->prepare("SELECT * FROM foundlost WHERE id_object = $id");
-        $select->bindValue("id_object", $id, PDO::PARAM_INT);
+        $select = $conn->prepare("SELECT id_object, status, description, date, location, firstname, lastname, email, users_id FROM foundlost WHERE id_object = $id");
+        $select->bindParam("id_object", $id, PDO::PARAM_INT);
         $select->execute();
         $result = $select->fetch(PDO::FETCH_ASSOC);
         echo json_encode($result);
@@ -34,10 +34,9 @@ if (isset($_GET['id'])) {
     }
 } else {
     try {
-        $select = $conn->prepare("SELECT * FROM foundlost ORDER BY date DESC");
+        $select = $conn->prepare("SELECT id_object, status, description, date, location, firstname, lastname, email, users_id FROM foundlost ORDER BY date DESC");
         $select->execute();
-        // 
-        while ($row = $select->fetch(PDO::FETCH_OBJ)) { // Assign each row of data to associat
+        while ($row = $select->fetch(PDO::FETCH_ASSOC)) { 
             $data[] = $row;
         }
         // echo "<pre>",print_r($_GET['status'] ,1),"</pre>";die();
