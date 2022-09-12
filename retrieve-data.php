@@ -5,21 +5,18 @@ header('Access-Control-Allow-Origin: *');
 
 // Définir les paramètres de connexion
 
-$host = "localhost";
-$db_name = "ionicfoundlost";
-$username = "root";
-$password = "";
+require_once 'configuration.php';
 
 // Créer une instance de la classe PDO (connexion à la base)
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$db_name; charset=UTF8", $username, $password);
+    $conn = new PDO("mysql:host=". DB_HOST . ";dbname=".DB_NAME."; charset=UTF8", DB_USER, DB_PWD);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     // echo "Connexion réussi";
 } catch (PDOException $exception) {
     echo "Erreur de connexion : " . $exception->getMessage();
 }
-// Prépare et exécute la requête de lecture de la table (try/catch)
 
+// Si $_GET['id'] est défini on sélectionne par l'id
 if (isset($_GET['id'])) {
     // error_log($_GET['id']);
     $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
@@ -32,6 +29,7 @@ if (isset($_GET['id'])) {
     } catch (PDOException $e) {
         echo $e->getMessage();
     }
+// Sinon je sélectionne tous et je trie par la date en ordre descendant
 } else {
     try {
         $select = $conn->prepare("SELECT id_object, status, description, date, location, firstname, lastname, email, users_id FROM foundlost ORDER BY date DESC");

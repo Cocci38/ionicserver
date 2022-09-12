@@ -5,13 +5,10 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // Connexion à la base de données
-$host = "localhost";
-$db_name = "ionicfoundlost";
-$username = "root";
-$password = "";
+require_once 'configuration.php';
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$db_name; charset=UTF8", $username, $password);
+    $conn = new PDO("mysql:host=". DB_HOST . ";dbname=".DB_NAME."; charset=UTF8", DB_USER, DB_PWD);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     // echo "Connexion réussi";
 } catch (PDOException $exception) {
@@ -31,7 +28,7 @@ if (!empty($input) || isset($_GET)) {
 
     // En fonction du mode d'action requis
     switch ($key) {
-            // Ajoute un nouvel enregistrement
+        // Ajoute un nouvel enregistrement
         case 'create':
             $status = htmlspecialchars(trim(strip_tags(stripslashes($data['status']))));
             $description = htmlspecialchars(trim(strip_tags(stripslashes($data['description']))));
@@ -44,7 +41,7 @@ if (!empty($input) || isset($_GET)) {
             try {
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
                 // preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $description);
-                if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,}$#", $description) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $location) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $firstname) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $lastname)) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)) {
                     $stmt = $conn->prepare("INSERT INTO foundlost (status, description, date, location, firstname, lastname, email, users_id) VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :users_id)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
@@ -67,7 +64,7 @@ if (!empty($input) || isset($_GET)) {
             }
             break;
 
-            // Mettre à jour les enregistements
+        // Mettre à jour le status pour le passé de 0 à 1
         case 'update':
             $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
             $status = "";
@@ -76,7 +73,6 @@ if (!empty($input) || isset($_GET)) {
                     $update = $conn->prepare("UPDATE foundlost SET status = 1 WHERE id_object = $id");
                     $update->bindParam(':status', $status, PDO::PARAM_INT);
                     $update->execute();
-
                 }
             } catch (PDOException $exception) {
                 echo "Erreur de connexion : " . $exception->getMessage();
@@ -84,7 +80,7 @@ if (!empty($input) || isset($_GET)) {
 
             break;
 
-            //Supprimer un enregistrement existant
+        //Supprimer un enregistrement existant
         case 'delete':
             $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
             try {
@@ -95,9 +91,11 @@ if (!empty($input) || isset($_GET)) {
                 echo "Erreur de connexion : " . $exception->getMessage();
             }
             break;
+
+        // Créer un nouvel utilisateur
         case 'sign-up':
 
-            // FILTER_SANITIZE_EMAIL : Supprime tous les caractères sauf les lettres, chiffres, et !#$%&'*+-=?^_`{|}~@.[].
+            // FILTER_SANITIZE_EMAIL : Supprime tous les caractères sauf les lettres, chiffres, et !#$%&'*+-=?^_`{|}~@.[]
             $username = htmlspecialchars(trim(strip_tags(stripslashes($data['username']))));
             $user_email = htmlspecialchars(trim(strip_tags(stripslashes($data['user_email']))));
             $password = htmlspecialchars(trim(strip_tags(stripslashes($data['password']))));
@@ -110,7 +108,7 @@ if (!empty($input) || isset($_GET)) {
                 $result = $login->fetch(PDO::FETCH_ASSOC);
 
                 if ($user_email !== $result['user_email']) {
-                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
+                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
                         $user = $conn->prepare("INSERT INTO users (username, user_email, password) VALUES(:username, :user_email, :password)");
                         $user->bindParam("username", $username, PDO::PARAM_STR);
                         $user->bindParam("user_email", $user_email, PDO::PARAM_STR);
@@ -138,13 +136,15 @@ if (!empty($input) || isset($_GET)) {
                 echo "Erreur de connexion : " . $exception->getMessage();
             }
             break;
+
+        // Connexion d'un utilisateur
         case 'login':
 
             $user_email = htmlspecialchars(trim(strip_tags(stripslashes($data['user_email']))));
             $password = htmlspecialchars(trim(strip_tags(stripslashes($data['password']))));
             try {
                 if ($user_email !== "" && $password !== "") {
-                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,}$#", $password)) {
+                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
                         $login = $conn->prepare("SELECT id_user, username, user_email, password FROM users WHERE user_email=:user_email");
                         $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
                         $login->execute();
