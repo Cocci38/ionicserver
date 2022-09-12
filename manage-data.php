@@ -1,5 +1,5 @@
 <?php
-// Pour gérer l’ajout, la mise à jour et la suppression des enregistrements de la table foundlost.
+// Pour gérer l’ajout, la mise à jour et la suppression des enregistrements de la table objects.
 // On peut garder * pour le développement mais il faudra le changer lors du passage en production
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -37,12 +37,12 @@ if (!empty($input) || isset($_GET)) {
             $firstname = htmlspecialchars(trim(strip_tags(stripslashes($data['firstname']))));
             $lastname = htmlspecialchars(trim(strip_tags(stripslashes($data['lastname']))));
             $email = htmlspecialchars(trim(strip_tags(stripslashes($data['email']))));
-            $users_id = htmlspecialchars(trim(strip_tags(stripslashes($data['users_id']))));
+            $user_id = htmlspecialchars(trim(strip_tags(stripslashes($data['user_id']))));
             try {
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
                 // preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $description);
                 if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)) {
-                    $stmt = $conn->prepare("INSERT INTO foundlost (status, description, date, location, firstname, lastname, email, users_id) VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :users_id)");
+                    $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id) VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
                     $stmt->bindParam("date", $date, PDO::PARAM_STR);
@@ -50,7 +50,7 @@ if (!empty($input) || isset($_GET)) {
                     $stmt->bindParam("firstname", $firstname, PDO::PARAM_STR);
                     $stmt->bindParam("lastname", $lastname, PDO::PARAM_STR);
                     $stmt->bindParam("email", $email, PDO::PARAM_STR);
-                    $stmt->bindParam("users_id", $users_id, PDO::PARAM_INT);
+                    $stmt->bindParam("user_id", $user_id, PDO::PARAM_INT);
                     $stmt->execute();
 
                     $create = true;
@@ -70,7 +70,7 @@ if (!empty($input) || isset($_GET)) {
             $status = "";
             try {
                 if ($status == 0) {
-                    $update = $conn->prepare("UPDATE foundlost SET status = 1 WHERE id_object = $id");
+                    $update = $conn->prepare("UPDATE objects SET status = 1 WHERE id_object = $id");
                     $update->bindParam(':status', $status, PDO::PARAM_INT);
                     $update->execute();
                 }
@@ -84,7 +84,7 @@ if (!empty($input) || isset($_GET)) {
         case 'delete':
             $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
             try {
-                $delete = $conn->prepare("DELETE FROM foundlost WHERE id_object = $id");
+                $delete = $conn->prepare("DELETE FROM objects WHERE id_object = $id");
                 $delete->execute();
                 $supp = $delete->fetchAll();
             } catch (PDOException $exception) {

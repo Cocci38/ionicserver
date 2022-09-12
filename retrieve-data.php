@@ -21,7 +21,7 @@ if (isset($_GET['id'])) {
     // error_log($_GET['id']);
     $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
     try {
-        $select = $conn->prepare("SELECT id_object, status, description, date, location, firstname, lastname, email, users_id FROM foundlost WHERE id_object = $id");
+        $select = $conn->prepare("SELECT id_object, status, description, date, location, firstname, lastname, email, user_id FROM objects WHERE id_object = $id");
         $select->bindParam("id_object", $id, PDO::PARAM_INT);
         $select->execute();
         $result = $select->fetch(PDO::FETCH_ASSOC);
@@ -32,7 +32,7 @@ if (isset($_GET['id'])) {
 // Sinon je sélectionne tous et je trie par la date en ordre descendant
 } else {
     try {
-        $select = $conn->prepare("SELECT id_object, status, description, date, location, firstname, lastname, email, users_id FROM foundlost ORDER BY date DESC");
+        $select = $conn->prepare("SELECT id_object, status, description, date, location, firstname, lastname, email, user_id FROM objects ORDER BY date DESC");
         $select->execute();
         while ($row = $select->fetch(PDO::FETCH_ASSOC)) { 
             $data[] = $row;
