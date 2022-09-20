@@ -177,9 +177,11 @@ if (!empty($input) || isset($_GET)) {
             try {
                 if (isset($_GET['id'])) {
                     $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
-                    $login = $conn->prepare("SELECT id_object, status, description, date, location, firstname, lastname, email, user_id FROM objects WHERE user_id = :user_id");
+                    $login = $conn->prepare("SELECT id_user, username, user_email, id_object, status, description, date, location, firstname, lastname, email FROM `users`
+                    INNER JOIN objects ON users.id_user = objects.user_id
+                    WHERE id_user = :id_user");
                     // error_log(print_r($login, 1));
-                    $login->bindParam("user_id", $id, PDO::PARAM_INT);
+                    $login->bindParam("id_user", $id, PDO::PARAM_INT);
                     $login->execute();
     
                     $result = $login->fetchAll(PDO::FETCH_ASSOC);
