@@ -18,7 +18,7 @@ try {
 
 // Si $_GET['id'] est défini on sélectionne par l'id
 if (isset($_GET['id'])) {
-    // error_log($_GET['id']);
+    // error_log(print_r($_GET, 1));
     $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
     try {
         $select = $conn->prepare("SELECT id_object, status, description, date, location, firstname, lastname, email, user_id FROM objects WHERE id_object = $id");
