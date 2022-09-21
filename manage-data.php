@@ -7,13 +7,13 @@ header('Access-Control-Allow-Headers: Content-Type');
 // Connexion à la base de données
 require_once 'configuration.php';
 
-try {
-    $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . "; charset=UTF8", DB_USER, DB_PWD);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    // echo "Connexion réussi";
-} catch (PDOException $exception) {
-    echo "Erreur de connexion : " . $exception->getMessage();
-}
+// try {
+//     $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . "; charset=UTF8", DB_USER, DB_PWD);
+//     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+//     // echo "Connexion réussi";
+// } catch (PDOException $exception) {
+//     echo "Erreur de connexion : " . $exception->getMessage();
+// }
 
 // Récupérer le paramètre d’action de l’URL du client depuis $_GET[‘key’] et nettoyer la valeur
 $key = htmlspecialchars(strip_tags(trim(stripslashes($_GET['key']))));
