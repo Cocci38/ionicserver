@@ -19,7 +19,8 @@ require_once 'configuration.php';
 $key = htmlspecialchars(strip_tags(trim(stripslashes($_GET['key']))));
 
 // Récupérer les paramètres envoyés par le client vers l’API
-// C'est la façon recommandée pour lire le contenu d'un fichier dans une chaîne de caractères.
+// La commande file_get_contents('php://input') lit les informations brutes qui sont enregistrées dans un fichier temporaire
+// avant qu'elles ne soient placées dans $_POST ou $_REQUEST 
 $input = file_get_contents('php://input');
 
 // Si les paramètres envoyés par le client ne sont pas vide OU $_GET est déclarée et différente de null ($_GET pour update et delete)
