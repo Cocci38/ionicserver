@@ -42,7 +42,7 @@ if (!empty($input) || isset($_GET)) {
             try {
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
                 // preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $description);
-                if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $email) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)) {
                     $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id) VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
@@ -109,7 +109,7 @@ if (!empty($input) || isset($_GET)) {
                 $result = $login->fetch(PDO::FETCH_ASSOC);
 
                 if ($user_email !== $result['user_email']) {
-                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
+                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $user_email) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
                         $user = $conn->prepare("INSERT INTO users (username, user_email, password) VALUES(:username, :user_email, :password)");
                         $user->bindParam("username", $username, PDO::PARAM_STR);
                         $user->bindParam("user_email", $user_email, PDO::PARAM_STR);
@@ -145,7 +145,7 @@ if (!empty($input) || isset($_GET)) {
             $password = htmlspecialchars(trim(strip_tags(stripslashes($data['password']))));
             try {
                 if ($user_email !== "" && $password !== "") {
-                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
+                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $user_email) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
                         $login = $conn->prepare("SELECT id_user, username, user_email, password FROM users WHERE user_email=:user_email");
                         $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
                         $login->execute();
@@ -173,30 +173,30 @@ if (!empty($input) || isset($_GET)) {
             }
             break;
 
-        case 'object':
+        // case 'account':
 
-            try {
-                if (isset($_GET['id'])) {
-                    $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
-                    $login = $conn->prepare("SELECT id_user, username, user_email, id_object, status, description, date, location, firstname, lastname, email FROM `users`
-                    INNER JOIN objects ON users.id_user = objects.user_id
-                    WHERE id_user = :id_user");
-                    // error_log(print_r($login, 1));
-                    $login->bindParam("id_user", $id, PDO::PARAM_INT);
-                    $login->execute();
+        //     try {
+        //         if (isset($_GET['id'])) {
+        //             $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
+        //             $login = $conn->prepare("SELECT id_user, username, user_email, id_object, status, description, date, location, firstname, lastname, email FROM `users`
+        //             INNER JOIN objects ON users.id_user = objects.user_id
+        //             WHERE id_user = :id_user");
+        //             // error_log(print_r($login, 1));
+        //             $login->bindParam("id_user", $id, PDO::PARAM_INT);
+        //             $login->execute();
     
-                    $result = $login->fetchAll(PDO::FETCH_ASSOC);
-                    // error_log(print_r($result, 1));
-                    echo json_encode($result);
-                } else {
-                    $object = false;
-                }
+        //             $result = $login->fetchAll(PDO::FETCH_ASSOC);
+        //             // error_log(print_r($result, 1));
+        //             echo json_encode($result);
+        //         } else {
+        //             $object = false;
+        //         }
 
-            } catch (PDOException $exception) {
-                echo "Erreur de connexion : " . $exception->getMessage();
-            }
+        //     } catch (PDOException $exception) {
+        //         echo "Erreur de connexion : " . $exception->getMessage();
+        //     }
 
-            break;
+        //     break;
 
         default:
             echo 'erreur';
