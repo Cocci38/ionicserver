@@ -1,19 +1,12 @@
 <?php
 // Pour gérer l’ajout, la mise à jour et la suppression des enregistrements de la table objects.
 // On peut garder * pour le développement mais il faudra le changer lors du passage en production
+// Les headers permettent de s’affranchir de la « CORS policy » qui empêche deux serveurs différents de communiquer par défaut. 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // Connexion à la base de données
 require_once 'configuration.php';
-
-// try {
-//     $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . "; charset=UTF8", DB_USER, DB_PWD);
-//     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-//     // echo "Connexion réussi";
-// } catch (PDOException $exception) {
-//     echo "Erreur de connexion : " . $exception->getMessage();
-// }
 
 // Récupérer le paramètre d’action de l’URL du client depuis $_GET[‘key’] et nettoyer la valeur
 $key = htmlspecialchars(strip_tags(trim(stripslashes($_GET['key']))));
@@ -41,9 +34,14 @@ if (!empty($input) || isset($_GET)) {
             $user_id = htmlspecialchars(trim(strip_tags(stripslashes($data['user_id']))));
             try {
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-                // preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,}$#", $description);
-                if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $email) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)) {
-                    $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id) VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id)");
+                if (filter_var($email, FILTER_VALIDATE_EMAIL) 
+                && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $email) 
+                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description) 
+                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location) 
+                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname) 
+                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)) {
+                    $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id) 
+                    VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
                     $stmt->bindParam("date", $date, PDO::PARAM_STR);
