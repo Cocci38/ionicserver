@@ -16,8 +16,8 @@ $key = htmlspecialchars(strip_tags(trim(stripslashes($_GET['key']))));
 // avant qu'elles ne soient placées dans $_POST ou $_REQUEST 
 $input = file_get_contents('php://input');
 
-// Si les paramètres envoyés par le client ne sont pas vide OU $_GET est déclarée et différente de null ($_GET pour update et delete)
-if (!empty($input) || isset($_GET)) {
+// Si les paramètres envoyés par le client ne sont pas vide OU $_GET['id'] est déclarée et différente de null ($_GET['id'] pour update et delete)
+if (!empty($input) || isset($_GET['id'])) {
     $data = json_decode($input, true);
 
     // En fonction du mode d'action requis
