@@ -19,11 +19,12 @@ $input = file_get_contents('php://input');
 // Si les paramètres envoyés par le client ne sont pas vide OU $_GET est déclarée et différente de null ($_GET pour update et delete)
 if (!empty($input) || isset($_GET['id'])) {
     $data = json_decode($input, true);
-
+    // error_log(print_r($data,1));
     // En fonction du mode d'action requis
     switch ($key) {
             // Ajoute un nouvel enregistrement
         case 'create':
+
             $status = htmlspecialchars(trim(strip_tags(stripslashes($data['status']))));
             $description = htmlspecialchars(trim(strip_tags(stripslashes($data['description']))));
             $date = htmlspecialchars(trim(strip_tags(stripslashes($data['date']))));
@@ -33,15 +34,67 @@ if (!empty($input) || isset($_GET['id'])) {
             $email = htmlspecialchars(trim(strip_tags(stripslashes($data['email']))));
             $user_id = htmlspecialchars(trim(strip_tags(stripslashes($data['user_id']))));
             try {
+                // // Vérifie si le fichier a été uploadé sans erreur
+                // if (isset($data["picture"]) && $data["picture"]["error"] == 0) {
+                //     error_log(print_r($data, 1));
+                //     $allowed = array("jpg" => "image/jpg", "jpeg" => "image/jpeg", "png" => "image/png");
+                //     $filename = $data["picture"]["name"];
+                //     $filetype = $data["picture"]["type"];
+                //     $filetmp = $data["picture"]["tmp_name"];
+                //     $chemin = "picture/";
+
+                //     // Vérifie l'extension du fichier
+                //     $ext = pathinfo($filename, PATHINFO_EXTENSION);
+                //     if (!array_key_exists($ext, $allowed)) die("Erreur : Veuillez sélectionner un format de fichier valide.");
+
+                //     // Pour redimensionner l'image en fonction de l'extension et on la bouge dans le répertoire de destination
+                //     switch ($ext) {
+                //         case 'png':
+                //             $im = imagecreatefrompng($filetmp); // Pour créer une nouvelle image depuis un fichier ou une URL (selon le nom de l'extention (ici PNG))
+                //             $newimg = imagescale($im, 800);        // Pour redimentionner l'image
+                //             imagepng($newimg, $chemin . $filename); // Pour envoyer une image vers un navigateur ou un fichier (selon le nom de l'extention (ici PNG))
+                //             break;
+                //         case 'jpg':
+                //             $im = imagecreatefromjpeg($filetmp);
+                //             $newimg = imagescale($im, 800);
+                //             imagejpeg($newimg, $chemin . $filename);
+                //         case 'jpeg':
+                //             $im = imagecreatefromjpeg($filetmp);
+                //             $newimg = imagescale($im, 800);
+                //             imagejpeg($newimg, $chemin . $filename);
+                //             break;
+                //         default:
+                //             echo "erreur extension";
+                //             break;
+                //     }
+                //     // Je bouge la nouvelle image dans le dossier image et je garde l'ancien nom
+                //     // move_uploaded_file($filetmp, "image/" . $filename); 
+                // }
+                error_log(print_r($data, 1));
+                $target_path = "picture/";
+
+                $target_path = $target_path . basename($_FILES['file']['name']);
+
+                if(move_uploaded_file($_FILES['file']['tmp_name'], $target_path)){
+                    header('Content-type: application/json');
+                    $succes = ['success' =>true, 'message' => 'Upload and move succes'];
+                    echo json_encode($succes);
+                } else {
+                    header('Content-type: application/json');
+                    $echec = ['success' =>false, 'message' => 'Une erreur est survenu pendant l\'upload'];
+                    echo json_encode($echec);
+                }
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-                if (filter_var($email, FILTER_VALIDATE_EMAIL) 
-                && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $email) 
-                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description) 
-                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location) 
-                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname) 
-                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)) {
-                    $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id) 
-                    VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id)");
+                if (
+                    filter_var($email, FILTER_VALIDATE_EMAIL)
+                    && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $email)
+                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description)
+                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location)
+                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname)
+                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)
+                ) {
+                    $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id, picture) 
+                    VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id, :picture)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
                     $stmt->bindParam("date", $date, PDO::PARAM_STR);
@@ -50,6 +103,7 @@ if (!empty($input) || isset($_GET['id'])) {
                     $stmt->bindParam("lastname", $lastname, PDO::PARAM_STR);
                     $stmt->bindParam("email", $email, PDO::PARAM_STR);
                     $stmt->bindParam("user_id", $user_id, PDO::PARAM_INT);
+                    $stmt->bindParam("picture", $data['picture']['name'], PDO::PARAM_STR);
                     $stmt->execute();
 
                     $create = true;
@@ -182,14 +236,13 @@ if (!empty($input) || isset($_GET['id'])) {
                     // error_log(print_r($login, 1));
                     $login->bindParam("id_user", $id, PDO::PARAM_INT);
                     $login->execute();
-    
+
                     $result = $login->fetchAll(PDO::FETCH_ASSOC);
                     // error_log(print_r($result, 1));
                     echo json_encode($result);
                 } else {
                     $object = false;
                 }
-
             } catch (PDOException $exception) {
                 echo "Erreur de connexion : " . $exception->getMessage();
             }
