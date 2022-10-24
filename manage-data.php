@@ -70,20 +70,6 @@ if (!empty($input) || isset($_GET['id'])) {
                 //     // Je bouge la nouvelle image dans le dossier image et je garde l'ancien nom
                 //     // move_uploaded_file($filetmp, "image/" . $filename); 
                 // }
-                error_log(print_r($data, 1));
-                $target_path = "picture/";
-
-                $target_path = $target_path . basename($_FILES['file']['name']);
-
-                if(move_uploaded_file($_FILES['file']['tmp_name'], $target_path)){
-                    header('Content-type: application/json');
-                    $succes = ['success' =>true, 'message' => 'Upload and move succes'];
-                    echo json_encode($succes);
-                } else {
-                    header('Content-type: application/json');
-                    $echec = ['success' =>false, 'message' => 'Une erreur est survenu pendant l\'upload'];
-                    echo json_encode($echec);
-                }
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
                 if (
                     filter_var($email, FILTER_VALIDATE_EMAIL)
