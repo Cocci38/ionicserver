@@ -71,7 +71,7 @@ if (!empty($input) || isset($_GET['id'])) {
                 echo "Erreur de connexion : " . $exception->getMessage();
             }
             break;
-            
+
             // Mettre à jour le status pour le passé de 0 à 1
         case 'update':
             $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
@@ -178,30 +178,6 @@ if (!empty($input) || isset($_GET['id'])) {
             } catch (PDOException $exception) {
                 echo "Erreur de connexion : " . $exception->getMessage();
             }
-            break;
-
-        case 'account':
-
-            try {
-                if (isset($_GET['id'])) {
-                    $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
-                    $login = $conn->prepare("SELECT id_user, username, user_email, id_object, status, description, date, location, firstname, lastname, email FROM `users`
-                    INNER JOIN objects ON users.id_user = objects.user_id
-                    WHERE id_user = :id_user");
-                    // error_log(print_r($login, 1));
-                    $login->bindParam("id_user", $id, PDO::PARAM_INT);
-                    $login->execute();
-
-                    $result = $login->fetchAll(PDO::FETCH_ASSOC);
-                    // error_log(print_r($result, 1));
-                    echo json_encode($result);
-                } else {
-                    $object = false;
-                }
-            } catch (PDOException $exception) {
-                echo "Erreur de connexion : " . $exception->getMessage();
-            }
-
             break;
 
         default:
