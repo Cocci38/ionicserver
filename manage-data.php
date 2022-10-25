@@ -19,11 +19,12 @@ $input = file_get_contents('php://input');
 // Si les paramètres envoyés par le client ne sont pas vide OU $_GET est déclarée et différente de null ($_GET pour update et delete)
 if (!empty($input) || isset($_GET['id'])) {
     $data = json_decode($input, true);
-
+    // error_log(print_r($data,1));
     // En fonction du mode d'action requis
     switch ($key) {
             // Ajoute un nouvel enregistrement
         case 'create':
+
             $status = htmlspecialchars(trim(strip_tags(stripslashes($data['status']))));
             $description = htmlspecialchars(trim(strip_tags(stripslashes($data['description']))));
             $date = htmlspecialchars(trim(strip_tags(stripslashes($data['date']))));
@@ -34,12 +35,14 @@ if (!empty($input) || isset($_GET['id'])) {
             $user_id = htmlspecialchars(trim(strip_tags(stripslashes($data['user_id']))));
             try {
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-                if (filter_var($email, FILTER_VALIDATE_EMAIL) 
-                && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $email) 
-                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description) 
-                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location) 
-                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname) 
-                && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)) {
+                if (
+                    filter_var($email, FILTER_VALIDATE_EMAIL)
+                    && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $email)
+                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description)
+                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location)
+                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname)
+                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)
+                ) {
                     $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id) 
                     VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
@@ -52,8 +55,14 @@ if (!empty($input) || isset($_GET['id'])) {
                     $stmt->bindParam("user_id", $user_id, PDO::PARAM_INT);
                     $stmt->execute();
 
+                    $idObject = $conn->lastInsertId();
+
+                    $login = $conn->prepare("SELECT id_object FROM objects WHERE id_object=:id_object");
+                    $login->bindParam("id_object", $idObject, PDO::PARAM_STR);
+                    $login->execute();
+                    $result = $login->fetch(PDO::FETCH_ASSOC);
                     $create = true;
-                    echo json_encode($create);
+                    echo json_encode($result, $create);
                 } else {
                     $create = false;
                     echo json_encode($create);
@@ -169,31 +178,6 @@ if (!empty($input) || isset($_GET['id'])) {
             } catch (PDOException $exception) {
                 echo "Erreur de connexion : " . $exception->getMessage();
             }
-            break;
-
-        case 'account':
-
-            try {
-                if (isset($_GET['id'])) {
-                    $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
-                    $login = $conn->prepare("SELECT id_user, username, user_email, id_object, status, description, date, location, firstname, lastname, email FROM `users`
-                    INNER JOIN objects ON users.id_user = objects.user_id
-                    WHERE id_user = :id_user");
-                    // error_log(print_r($login, 1));
-                    $login->bindParam("id_user", $id, PDO::PARAM_INT);
-                    $login->execute();
-    
-                    $result = $login->fetchAll(PDO::FETCH_ASSOC);
-                    // error_log(print_r($result, 1));
-                    echo json_encode($result);
-                } else {
-                    $object = false;
-                }
-
-            } catch (PDOException $exception) {
-                echo "Erreur de connexion : " . $exception->getMessage();
-            }
-
             break;
 
         default:
