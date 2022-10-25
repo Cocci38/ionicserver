@@ -71,42 +71,7 @@ if (!empty($input) || isset($_GET['id'])) {
                 echo "Erreur de connexion : " . $exception->getMessage();
             }
             break;
-
-        case 'image':
-            error_log('je passe ici');
-            $objectId = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
-            error_log($_GET['id']);
-            try {
-                $allowed = array("jpg" => "image/jpg", "jpeg" => "image/jpeg", "png" => "image/png");
-                $filename = $_FILES['file']["name"];
-                $filetmp = $_FILES['file']["tmp_name"];
-                $target_path = "picture/";
-                $target_path = $target_path . basename($_FILES['file']['name']);
-
-                // Vérifie l'extension du fichier
-                $ext = pathinfo($filename, PATHINFO_EXTENSION);
-                if (!array_key_exists($ext, $allowed)) die("Erreur : Veuillez sélectionner un format de fichier valide.");
-
-                $stmt = $conn->prepare("INSERT INTO pictures (picture, object_id) VALUES(:picture, :object_id)");
-                $stmt->bindParam("picture", $filename, PDO::PARAM_STR);
-                $stmt->bindParam("object_id", $objectId, PDO::PARAM_INT);
-                $stmt->execute();
-
-                $create = true;
-
-                if ($create) {
-                    move_uploaded_file($filetmp, $target_path);
-                    $data = ['success' => true, 'message' => 'Téléchargement et déplacement réussis'];
-                    echo json_encode($data);
-                } else {
-                    $data = ['success' => false, 'message' => 'Une erreur est survenu pendant l\'upload'];
-                    echo json_encode($data);
-                }
-            } catch (PDOException $exception) {
-                echo "Erreur de connexion : " . $exception->getMessage();
-            }
-            break;
-
+            
             // Mettre à jour le status pour le passé de 0 à 1
         case 'update':
             $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
