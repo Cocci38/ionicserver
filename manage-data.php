@@ -34,42 +34,6 @@ if (!empty($input) || isset($_GET['id'])) {
             $email = htmlspecialchars(trim(strip_tags(stripslashes($data['email']))));
             $user_id = htmlspecialchars(trim(strip_tags(stripslashes($data['user_id']))));
             try {
-                // // Vérifie si le fichier a été uploadé sans erreur
-                // if (isset($data["picture"]) && $data["picture"]["error"] == 0) {
-                //     error_log(print_r($data, 1));
-                //     $allowed = array("jpg" => "image/jpg", "jpeg" => "image/jpeg", "png" => "image/png");
-                //     $filename = $data["picture"]["name"];
-                //     $filetype = $data["picture"]["type"];
-                //     $filetmp = $data["picture"]["tmp_name"];
-                //     $chemin = "picture/";
-
-                //     // Vérifie l'extension du fichier
-                //     $ext = pathinfo($filename, PATHINFO_EXTENSION);
-                //     if (!array_key_exists($ext, $allowed)) die("Erreur : Veuillez sélectionner un format de fichier valide.");
-
-                //     // Pour redimensionner l'image en fonction de l'extension et on la bouge dans le répertoire de destination
-                //     switch ($ext) {
-                //         case 'png':
-                //             $im = imagecreatefrompng($filetmp); // Pour créer une nouvelle image depuis un fichier ou une URL (selon le nom de l'extention (ici PNG))
-                //             $newimg = imagescale($im, 800);        // Pour redimentionner l'image
-                //             imagepng($newimg, $chemin . $filename); // Pour envoyer une image vers un navigateur ou un fichier (selon le nom de l'extention (ici PNG))
-                //             break;
-                //         case 'jpg':
-                //             $im = imagecreatefromjpeg($filetmp);
-                //             $newimg = imagescale($im, 800);
-                //             imagejpeg($newimg, $chemin . $filename);
-                //         case 'jpeg':
-                //             $im = imagecreatefromjpeg($filetmp);
-                //             $newimg = imagescale($im, 800);
-                //             imagejpeg($newimg, $chemin . $filename);
-                //             break;
-                //         default:
-                //             echo "erreur extension";
-                //             break;
-                //     }
-                //     // Je bouge la nouvelle image dans le dossier image et je garde l'ancien nom
-                //     // move_uploaded_file($filetmp, "image/" . $filename); 
-                // }
                 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
                 if (
                     filter_var($email, FILTER_VALIDATE_EMAIL)
@@ -79,8 +43,8 @@ if (!empty($input) || isset($_GET['id'])) {
                     && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname)
                     && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)
                 ) {
-                    $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id, picture) 
-                    VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id, :picture)");
+                    $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id) 
+                    VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
                     $stmt->bindParam("date", $date, PDO::PARAM_STR);
@@ -89,14 +53,54 @@ if (!empty($input) || isset($_GET['id'])) {
                     $stmt->bindParam("lastname", $lastname, PDO::PARAM_STR);
                     $stmt->bindParam("email", $email, PDO::PARAM_STR);
                     $stmt->bindParam("user_id", $user_id, PDO::PARAM_INT);
-                    $stmt->bindParam("picture", $data['picture']['name'], PDO::PARAM_STR);
                     $stmt->execute();
 
+                    $idObject = $conn->lastInsertId();
+
+                    $login = $conn->prepare("SELECT id_object FROM objects WHERE id_object=:id_object");
+                    $login->bindParam("id_object", $idObject, PDO::PARAM_STR);
+                    $login->execute();
+                    $result = $login->fetch(PDO::FETCH_ASSOC);
                     $create = true;
-                    echo json_encode($create);
+                    echo json_encode($result, $create);
                 } else {
                     $create = false;
                     echo json_encode($create);
+                }
+            } catch (PDOException $exception) {
+                echo "Erreur de connexion : " . $exception->getMessage();
+            }
+            break;
+
+        case 'image':
+            error_log('je passe ici');
+            $objectId = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
+            error_log($_GET['id']);
+            try {
+                $allowed = array("jpg" => "image/jpg", "jpeg" => "image/jpeg", "png" => "image/png");
+                $filename = $_FILES['file']["name"];
+                $filetmp = $_FILES['file']["tmp_name"];
+                $target_path = "picture/";
+                $target_path = $target_path . basename($_FILES['file']['name']);
+
+                // Vérifie l'extension du fichier
+                $ext = pathinfo($filename, PATHINFO_EXTENSION);
+                if (!array_key_exists($ext, $allowed)) die("Erreur : Veuillez sélectionner un format de fichier valide.");
+
+                $stmt = $conn->prepare("INSERT INTO pictures (picture, object_id) VALUES(:picture, :object_id)");
+                $stmt->bindParam("picture", $filename, PDO::PARAM_STR);
+                $stmt->bindParam("object_id", $objectId, PDO::PARAM_INT);
+                $stmt->execute();
+
+                $create = true;
+
+                if ($create) {
+                    move_uploaded_file($filetmp, $target_path);
+                    $data = ['success' => true, 'message' => 'Téléchargement et déplacement réussis'];
+                    echo json_encode($data);
+                } else {
+                    $data = ['success' => false, 'message' => 'Une erreur est survenu pendant l\'upload'];
+                    echo json_encode($data);
                 }
             } catch (PDOException $exception) {
                 echo "Erreur de connexion : " . $exception->getMessage();
