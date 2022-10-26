@@ -179,7 +179,7 @@ if (!empty($input) || isset($_GET['id'])) {
                 echo "Erreur de connexion : " . $exception->getMessage();
             }
             break;
-
+    
         default:
             echo 'erreur';
             break;
