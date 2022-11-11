@@ -1,22 +1,31 @@
 <?php
-// Pour gérer l’ajout, la mise à jour et la suppression des enregistrements de la table objects.
-// On peut garder * pour le développement mais il faudra le changer lors du passage en production
-// Les headers permettent de s’affranchir de la « CORS policy » qui empêche deux serveurs différents de communiquer par défaut. 
+/**
+ * Pour gérer l’ajout, la mise à jour et la suppression des enregistrements de la table objects.
+ * On peut garder * pour le développement mais il faudra le changer lors du passage en production
+ * Les headers permettent de s’affranchir de la « CORS policy » 
+ * qui empêche deux serveurs différents de communiquer par défaut.
+ */
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // Connexion à la base de données
 require_once 'configuration.php';
 
-// Récupérer le paramètre d’action de l’URL du client depuis $_GET[‘key’] et nettoyer la valeur
+// Récupérer le paramètre d’action de l’URL du client depuis $_GET[‘key’] 
+// et nettoyer la valeur
 $key = htmlspecialchars(strip_tags(trim(stripslashes($_GET['key']))));
 
-// Récupérer les paramètres envoyés par le client vers l’API
-// La commande file_get_contents('php://input') lit les informations brutes qui sont enregistrées dans un fichier temporaire
-// avant qu'elles ne soient placées dans $_POST ou $_REQUEST 
+// error_log(print_r($_GET['key'] == 'login', 1));
+
+/**
+ * Récupérer les paramètres envoyés par le client vers l’API
+ * La commande file_get_contents('php://input') lit les informations brutes qui sont enregistrées 
+ * dans un fichier temporaire avant qu'elles ne soient placées dans $_POST ou $_REQUEST 
+ */
 $input = file_get_contents('php://input');
 
-// Si les paramètres envoyés par le client ne sont pas vide OU $_GET est déclarée et différente de null ($_GET pour update et delete)
+// Si les paramètres envoyés par le client ne sont pas vide 
+// OU $_GET est déclarée et différente de null ($_GET pour update et delete)
 if (!empty($input) || isset($_GET['id'])) {
     $data = json_decode($input, true);
     // error_log(print_r($data,1));
@@ -24,7 +33,6 @@ if (!empty($input) || isset($_GET['id'])) {
     switch ($key) {
             // Ajoute un nouvel enregistrement
         case 'create':
-
             $status = htmlspecialchars(trim(strip_tags(stripslashes($data['status']))));
             $description = htmlspecialchars(trim(strip_tags(stripslashes($data['description']))));
             $date = htmlspecialchars(trim(strip_tags(stripslashes($data['date']))));
@@ -32,19 +40,19 @@ if (!empty($input) || isset($_GET['id'])) {
             $firstname = htmlspecialchars(trim(strip_tags(stripslashes($data['firstname']))));
             $lastname = htmlspecialchars(trim(strip_tags(stripslashes($data['lastname']))));
             $email = htmlspecialchars(trim(strip_tags(stripslashes($data['email']))));
+            $email = filter_var($email, FILTER_SANITIZE_EMAIL);
             $user_id = htmlspecialchars(trim(strip_tags(stripslashes($data['user_id']))));
             try {
-                $email = filter_var($email, FILTER_SANITIZE_EMAIL);
                 if (
                     filter_var($email, FILTER_VALIDATE_EMAIL)
                     && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $email)
-                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description)
+                    && preg_match("#^[a-zA-Z0-9-\' ,.?!æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{10,250}$#", $description)
                     && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,100}$#", $location)
                     && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $firstname)
                     && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $lastname)
                 ) {
                     $stmt = $conn->prepare("INSERT INTO objects (status, description, date, location, firstname, lastname, email, user_id) 
-                    VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id)");
+                                            VALUES(:status, :description, :date, :location, :firstname, :lastname, :email, :user_id)");
                     $stmt->bindParam("status", $status, PDO::PARAM_INT);
                     $stmt->bindParam("description", $description, PDO::PARAM_STR);
                     $stmt->bindParam("date", $date, PDO::PARAM_STR);
@@ -56,13 +64,13 @@ if (!empty($input) || isset($_GET['id'])) {
                     $stmt->execute();
 
                     $idObject = $conn->lastInsertId();
+                    //error_log($idObject);
 
                     $login = $conn->prepare("SELECT id_object FROM objects WHERE id_object=:id_object");
                     $login->bindParam("id_object", $idObject, PDO::PARAM_STR);
                     $login->execute();
                     $result = $login->fetch(PDO::FETCH_ASSOC);
-                    $create = true;
-                    echo json_encode($result, $create);
+                    echo json_encode($result);
                 } else {
                     $create = false;
                     echo json_encode($create);
@@ -92,6 +100,13 @@ if (!empty($input) || isset($_GET['id'])) {
         case 'delete':
             $id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
             try {
+                $delete = $conn->prepare("DELETE FROM pictures WHERE object_id = $id");
+                $delete->execute();
+                $supp = $delete->fetchAll();
+            } catch (PDOException $exception) {
+                echo "Erreur de connexion : " . $exception->getMessage();
+            }
+            try {
                 $delete = $conn->prepare("DELETE FROM objects WHERE id_object = $id");
                 $delete->execute();
                 $supp = $delete->fetchAll();
@@ -103,21 +118,23 @@ if (!empty($input) || isset($_GET['id'])) {
             // Créer un nouvel utilisateur
         case 'sign-up':
 
-            // FILTER_SANITIZE_EMAIL : Supprime tous les caractères sauf les lettres, chiffres, et !#$%&'*+-=?^_`{|}~@.[]
             $username = htmlspecialchars(trim(strip_tags(stripslashes($data['username']))));
             $user_email = htmlspecialchars(trim(strip_tags(stripslashes($data['user_email']))));
+            $user_email = filter_var($user_email, FILTER_SANITIZE_EMAIL);
             $password = htmlspecialchars(trim(strip_tags(stripslashes($data['password']))));
             $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-
             try {
-                $user_email = filter_var($user_email, FILTER_SANITIZE_EMAIL);
                 $login = $conn->prepare("SELECT user_email FROM users");
                 $login->execute();
                 $result = $login->fetch(PDO::FETCH_ASSOC);
 
                 if ($user_email !== $result['user_email']) {
-                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $user_email) && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $username) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
-                        $user = $conn->prepare("INSERT INTO users (username, user_email, password) VALUES(:username, :user_email, :password)");
+                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) 
+                    && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $user_email) 
+                    && preg_match("#^[a-zA-Z0-9-\' æœçéàèùâêîôûëïüÿÂÊÎÔÛÄËÏÖÜÀÆÇÉÈŒÙ]{3,25}$#", $username) 
+                    && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
+                        $user = $conn->prepare("INSERT INTO users (username, user_email, password) 
+                                                VALUES(:username, :user_email, :password)");
                         $user->bindParam("username", $username, PDO::PARAM_STR);
                         $user->bindParam("user_email", $user_email, PDO::PARAM_STR);
                         $user->bindParam("password", $passwordHash, PDO::PARAM_STR);
@@ -149,11 +166,16 @@ if (!empty($input) || isset($_GET['id'])) {
         case 'login':
 
             $user_email = htmlspecialchars(trim(strip_tags(stripslashes($data['user_email']))));
+            $user_email = filter_var($user_email, FILTER_SANITIZE_EMAIL);
             $password = htmlspecialchars(trim(strip_tags(stripslashes($data['password']))));
             try {
                 if ($user_email !== "" && $password !== "") {
-                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $user_email) && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
-                        $login = $conn->prepare("SELECT id_user, username, user_email, password FROM users WHERE user_email=:user_email");
+                    if (filter_var($user_email, FILTER_VALIDATE_EMAIL) 
+                    && preg_match("#^[a-zA-Z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$#", $user_email) 
+                    && preg_match("#^[a-zA-Z0-9-?!*+/]{8,25}$#", $password)) {
+                        $login = $conn->prepare("SELECT id_user, username, user_email, password 
+                                                FROM users 
+                                                WHERE user_email=:user_email");
                         $login->bindParam("user_email", $user_email, PDO::PARAM_STR);
                         $login->execute();
                         $result = $login->fetch(PDO::FETCH_ASSOC);

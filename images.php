@@ -5,13 +5,13 @@ header('Access-Control-Allow-Origin: *');
 
 // Connexion à la base de données
 require_once 'configuration.php';
-error_log(print_r($_FILES, 1));
+// error_log(print_r($_FILES, 1));
+
+
 $object_id = htmlspecialchars(strip_tags(trim(stripslashes($_GET['id']))));
-
-error_log(print_r($object_id, 1));
-
+// error_log(print_r($object_id, 1));
 if (isset($_FILES["file"]) && $_FILES["file"]["error"] == 0) {
-    error_log('je passe ici ');
+    //error_log('je passe ici ');
     $allowed = array("jpg" => "image/jpg", "jpeg" => "image/jpeg", "png" => "image/png");
     $filename = $_FILES['file']["name"];
     $filetmp = $_FILES['file']["tmp_name"];
@@ -22,7 +22,7 @@ if (isset($_FILES["file"]) && $_FILES["file"]["error"] == 0) {
     $ext = pathinfo($filename, PATHINFO_EXTENSION);
     try {
         if (!array_key_exists($ext, $allowed)) {
-            error_log('error format image');
+            //error_log('error format image');
             $data = ['success' => false, 'message' => "Erreur : Veuillez sélectionner un format de fichier valide."];
             echo json_encode($data);
         } else {

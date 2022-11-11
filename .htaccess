@@ -2,3 +2,7 @@
 Order allow,deny
 Deny from all
 </files>
+<files constante.php>
+Order allow,deny
+Deny from all
+</files>
